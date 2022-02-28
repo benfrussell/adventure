@@ -1,5 +1,7 @@
 use std::time::Duration;
+use actions::{ActionList, do_actions};
 use bevy::prelude::*;
+use bevy::core::FixedTimestep;
 use benimator::*;
 
 mod actions;
@@ -21,6 +23,11 @@ fn main() {
         .add_startup_system(camera_setup)
         .add_startup_system(load_handles)
         .add_startup_system(spawn_adventurer)
+        .add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::steps_per_second(60.0))
+                .with_system(do_actions)
+        )
         .run()
 }
 
@@ -43,7 +50,7 @@ fn load_handles(
     mut animations: ResMut<Assets<SpriteSheetAnimation>>) {
         handles.adv_stand_anim = animations.add(SpriteSheetAnimation::from_range(
             0..=1,
-            Duration::from_millis(200),
+            Duration::from_millis(600),
         ));
 
         handles.adv_walk_anim = animations.add(SpriteSheetAnimation::from_range(
@@ -65,5 +72,6 @@ fn spawn_adventurer(mut commands: Commands, handles: Res<Handles>) {
             ..Default::default()
             })
             .insert(handles.adv_stand_anim.clone_weak())
-            .insert(Play);
+            .insert(Play)
+            .insert(ActionList::new());
 }
